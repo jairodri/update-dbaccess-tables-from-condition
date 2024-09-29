@@ -169,5 +169,18 @@ def process_client_table(db_path: str, client_table: str, client_key_field: str)
         df_mappings = pd.concat([df_mappings, new_row], ignore_index=True)
         
     # Mostrar los mapeos
-    print(df_mappings)
+    # print(df_mappings)
+
+    with engine.begin() as connection:
+        for idx, row in df_mappings.iterrows():
+            old_code = row['OLD_CODE']
+            new_code = row['NEW_CODE']
+            
+            # Usamos SQL para actualizar los registros directamente
+            query = sa.text("""
+                UPDATE RPROVCLI 
+                SET P_CODIGO = :new_code 
+                WHERE P_CODIGO = :old_code
+            """)
+            connection.execute(query, {'new_code': new_code, 'old_code': old_code})
 
